@@ -7,16 +7,23 @@ using UnityEngine.UI;
 public class Weapon : MonoBehaviour
 {
     public bool isActiveWeapon;
+    public int weaponDamage;
 
+    [Header("Shooting")]
     public bool isShooting,readyToShoot;
     bool allowReset = true;
     public float shootingDelay = 2f;
 
+    [Header("Burst")]
     public int bulletsPerBurst = 3;
     public int burstBulletsLeft;
 
+    [Header("Spread")]
     public float spreadIntensity;
+    public float hipSpreadIntensity;
+    public float adsSpreadIntensity;
 
+    [Header("Bullet")]
     public GameObject bulletPrefab;
     public Transform bulletSpawn;
     public float bulletVelocity = 30;
@@ -25,12 +32,15 @@ public class Weapon : MonoBehaviour
     public GameObject muzzleEffect;
     internal Animator animator;
 
+    [Header("Reload")]
     public float reloadTime;
     public int magazineSize, bulletsLeft;
     public bool isReloading;
 
     public Vector3 spawnPosition;
     public Vector3 spawnRotation;
+
+    public bool isADS;
     public enum WeaponModel
     {
         Pistol1911,
@@ -54,13 +64,29 @@ public class Weapon : MonoBehaviour
         burstBulletsLeft = bulletsPerBurst;
         animator = GetComponent<Animator>();
         bulletsLeft = magazineSize;
+        spreadIntensity = hipSpreadIntensity;
     }
 
     void Update()
     {
         if (isActiveWeapon)
         {
-            GetComponent<Outline>().enabled = false;
+            foreach(Transform child in transform)
+            {
+                child.gameObject.layer = LayerMask.NameToLayer("WeaponRender");
+            }
+
+            if (Input.GetMouseButtonDown(1))
+            {
+                enterADS();
+            }
+
+            if (Input.GetMouseButtonUp(1))
+            {
+                exitADS();
+            }
+
+                GetComponent<Outline>().enabled = false;
 
             if (bulletsLeft == 0 && isShooting)
             {
@@ -94,8 +120,31 @@ public class Weapon : MonoBehaviour
                 FireWeapon();
             }
 
-           
+
         }
+        else
+        {
+            foreach (Transform child in transform)
+            {
+                child.gameObject.layer = LayerMask.NameToLayer("Default");
+            }
+        }
+    }
+
+    public void enterADS()
+    {
+        animator.SetTrigger("enterADS");
+        isADS = true;
+        HUDManager.Instance.middleDot.SetActive(false);
+        spreadIntensity = adsSpreadIntensity;
+    }
+
+    public void exitADS()
+    {
+        animator.SetTrigger("exitADS");
+        isADS = false;
+        HUDManager.Instance.middleDot.SetActive(true);
+        spreadIntensity = hipSpreadIntensity;
     }
 
     public void FireWeapon()
@@ -103,7 +152,15 @@ public class Weapon : MonoBehaviour
         bulletsLeft--;
 
         muzzleEffect.GetComponent<ParticleSystem>().Play();
-        animator.SetTrigger("RECOIL");
+
+        if (isADS)
+        {
+            animator.SetTrigger("RECOIL_ADS");
+        }
+        else
+        {
+            animator.SetTrigger("RECOIL");
+        }
 
         //SoundManager.Instance.ShootingSoundM1911.Play();
         SoundManager.Instance.PlayShootingSound(thisWeaponModel);
@@ -114,6 +171,8 @@ public class Weapon : MonoBehaviour
 
         //создаём пулю
         GameObject bullet = Instantiate(bulletPrefab, bulletSpawn.position, Quaternion.identity);
+        Bullet bul = bullet.GetComponent<Bullet>();
+        bul.bulletDamage = weaponDamage;
 
         //задаём модель пули в сторону shootingDirection
         bullet.transform.forward = shootingDirection;

@@ -6,6 +6,7 @@ public class InteractionManager : MonoBehaviour
 
     public Weapon hoveredWeapon = null;
     public AmmoBox hoveredAmmoBox = null;
+    public Throwable hoveredThrowable = null;
     public void Awake()
     {
         if(Instance != null && Instance != this)
@@ -27,8 +28,15 @@ public class InteractionManager : MonoBehaviour
         {
             GameObject objectHitByRaycast = hit.transform.gameObject;
 
+            //Weapon
             if (objectHitByRaycast.GetComponent<Weapon>() && objectHitByRaycast.GetComponent<Weapon>().isActiveWeapon == false)
             {
+                //выключаем выделение предыдущего предмета
+                if (hoveredWeapon)
+                {
+                    hoveredWeapon.GetComponent<Outline>().enabled = false;
+                }
+
                 hoveredWeapon = objectHitByRaycast.GetComponent<Weapon>();
                 hoveredWeapon.GetComponent<Outline>().enabled = true;
 
@@ -48,6 +56,12 @@ public class InteractionManager : MonoBehaviour
             //Ammo Box
             if (objectHitByRaycast.GetComponent<AmmoBox>())
             {
+                //выключаем выделение предыдущего предмета
+                if (hoveredAmmoBox)
+                {
+                    hoveredAmmoBox.GetComponent<Outline>().enabled = false;
+                }
+
                 hoveredAmmoBox = objectHitByRaycast.GetComponent<AmmoBox>();
                 hoveredAmmoBox.GetComponent<Outline>().enabled = true;
 
@@ -62,6 +76,31 @@ public class InteractionManager : MonoBehaviour
                 if (hoveredAmmoBox)
                 {
                     hoveredAmmoBox.GetComponent<Outline>().enabled = false;
+                }
+            }
+
+            //Throwables
+            if (objectHitByRaycast.GetComponent<Throwable>())
+            {
+                //выключаем выделение предыдущего предмета
+                if (hoveredThrowable)
+                {
+                    hoveredThrowable.GetComponent<Outline>().enabled = false;
+                }
+
+                hoveredThrowable = objectHitByRaycast.GetComponent<Throwable>();
+                hoveredThrowable.GetComponent<Outline>().enabled = true;
+
+                if (Input.GetKeyDown(KeyCode.F))
+                {
+                    WeaponManager.Instance.PickupThrowable(hoveredThrowable);
+                }
+            }
+            else
+            {
+                if (hoveredThrowable)
+                {
+                    hoveredThrowable.GetComponent<Outline>().enabled = false;
                 }
             }
         }

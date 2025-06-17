@@ -6,6 +6,12 @@ public class GlobalReferences : MonoBehaviour
 
     public GameObject bulletImpactEffectPrefab;
 
+    public GameObject grenadeExplosionEffect;
+    public GameObject smokeGrenadeEffect;
+    public GameObject bloodSprayEffect;
+
+    public int waveNumber;
+
     public void Awake()
     {
         if(Instance != null && Instance != this)
